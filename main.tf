@@ -43,7 +43,7 @@ data "aws_iam_policy_document" "kendra_index_cloudwatch_policy" {
     condition {
       test     = "StringEquals"
       variable = "cloudwatch:namespace"
-      values   = ["Kendra"]
+      values   = ["AWS/Kendra"]
     }
   }
   statement {
