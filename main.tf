@@ -8,9 +8,10 @@
 //See documentation: https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/kendra_index
 resource "awscc_kendra_index" "demo-index" {
   description = "Demo index created with the AWS Cloud Control Provider for Terraform"
-  edition  = "ENTERPRISE_EDITION"
-  name     = "terraform-awscc-demo"
-  role_arn = aws_iam_role.kendra_index.arn
+  edition     = "ENTERPRISE_EDITION"
+  name        = "terraform-awscc-demo"
+  role_arn    = aws_iam_role.kendra_index.arn
+  depends_on  = [time_sleep.wait_for_iam]
 }
 
 data "aws_region" "current" {}
@@ -18,7 +19,7 @@ data "aws_caller_identity" "current" {}
 
 locals {
   region_name = data.aws_region.current.name
-  account_id = data.aws_caller_identity.current.account_id
+  account_id  = data.aws_caller_identity.current.account_id
 }
 
 output "region_name" {
@@ -63,7 +64,7 @@ data "aws_iam_policy_document" "kendra_index_cloudwatch_policy" {
 data "aws_iam_policy_document" "kendra_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]
-    /*
+    /* SHOULD USE CONDITIONAL ACCOUNT VERIFICATION *** does not work today.
     condition {
       test     = "StringEquals"
       variable = "aws:SourceAccount"
@@ -91,6 +92,11 @@ resource "aws_iam_role" "kendra_index" {
   }
 }
 #End Region
+
+resource "time_sleep" "wait_for_iam" {
+  depends_on      = [aws_iam_role.kendra_index]
+  create_duration = "40s"
+}
 
 terraform {
   required_providers {
